@@ -4,3 +4,6 @@ venv/
 # data_folder
 
 data/
+
+# os files
+.DS_Store
