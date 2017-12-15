@@ -1,0 +1,7 @@
+# Project Relative ignores
+
+.DS_Store
+venv/
+.idea/
+pickles/
+
