@@ -17,9 +17,17 @@ NORMALIZED_COLUMN_NAMES = {
     '#61FD': 'NO2_61FD',
     '#61F0': 'NO2_61F0',
     '#61EF': 'NO2_61EF',
+    '#6182': 'PM_6182',
+    '#6179': 'PM_6179',
+    '#617B': 'PM_617B',
+    'pm2.5#6182': 'PM25_6182',
+    'pm2.5#6179': 'PM25_6179',
+    'PM25_6170': 'PM25_6179',
+    'pm2.5#617B': 'PM25_617B',
 }
 
 NO2_FILENAME = "AllNO2_QH.csv"
+PM_FILENAME ='AllPM_QH.csv'
 ENV_FILENAME = "Env_QH.csv"
 
 
@@ -78,6 +86,39 @@ def create_no2_pkl(folder, out_pickle):
     out_df.to_pickle(out_pickle)
 
 
+def create_pm_pkl(folder, out_pickle):
+    """
+    :param folder: path of the folder containing the NO2 and ENV csv inputs file
+    :param out_pickle: path of the output pickle file
+    :return:
+    """
+    if not os.path.isdir(folder):
+        raise NotADirectoryError
+    pm_filename = os.path.join(folder, PM_FILENAME)
+    env_filename = os.path.join(folder, ENV_FILENAME)
+
+    df_pm = pd.read_csv(pm_filename, encoding='utf-8', delimiter=';')
+    df_env = pd.read_csv(env_filename, encoding='utf-8', delimiter=';')
+
+    df_env = df_env.set_index('date').T
+    out_df = pd.DataFrame(columns=['date', 'ref', 'PM_6182', 'PM_6179', 'PM_617B', 'PM25_6182', 'PM25_6179', 'PM25_617B', 'rh', 't_grad', 'pressure',
+                                   'temp', 'pluvio'])
+
+    for i in range(len(df_pm)):
+        row = df_pm.iloc[i]
+        date = row.date
+        env = df_env[date]
+        rh = env.rh if 'rh' in env else 'NA'
+        t_grad = env.t_grad if 't_grad' in env else 'NA'
+        pressure = env.pressure if 'pressure' in env else 'NA'
+        pluvio = env.pluvio if 'pluvio' in env else 'NA'
+        temp = env.temp if 'temp' in env else 'NA'
+        out_df.loc[i] = [date, row.ref, row.PM_6182, row.PM_6179, row.PM_617B, row.PM25_6182, row.PM25_6179, row.PM25_617B, rh, t_grad, pressure,
+                         temp, pluvio]
+
+    out_df.to_pickle(out_pickle)
+
+
 def normalize_pickle(input_pickle, output_pickle):
     df = pd.read_pickle(input_pickle)
 
@@ -90,11 +131,6 @@ def normalize_pickle(input_pickle, output_pickle):
 
 
 def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("clean", help="clean a csv file")
-
-    args = parser.parse_args()
-    print(args)
     args = sys.argv
     if len(args) < 2:
         print("Not enough arguments")
@@ -112,7 +148,7 @@ def main():
             else:
                 folder = args[2]
                 pickle_name = args[3]
-                create_no2_pkl(folder, pickle_name)
+                create_pm_pkl(folder, pickle_name)
         elif args[1] == "normalize_pickle":
             if len(args) < 4:
                 print("Pickle out or folder input missing")
