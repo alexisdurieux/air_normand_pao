@@ -119,6 +119,16 @@ def create_pm_pkl(folder, out_pickle):
     out_df.to_pickle(out_pickle)
 
 
+def normalize_pm_pickle(input_pickle, output_pickle):
+    df = pd.read_pickle(input_pickle)
+
+    df = df[pd.notnull(df).all(axis=1)]
+    tmp_df = df[['PM_6182', 'PM_6179', 'PM_617B', 'PM25_6182', 'PM25_6179', 'PM25_617B', 'rh', 't_grad', 'pressure', 'temp']]
+    normalized_df = (tmp_df - tmp_df.mean()) / tmp_df.std()
+    df[['PM_6182', 'PM_6179', 'PM_617B', 'PM25_6182', 'PM25_6179', 'PM25_617B', 'rh', 't_grad', 'pressure', 'temp']] = normalized_df
+
+    df.to_pickle(output_pickle)
+    
 def normalize_pickle(input_pickle, output_pickle):
     df = pd.read_pickle(input_pickle)
 
@@ -155,7 +165,7 @@ def main():
             else:
                 folder = args[2]
                 pickle_name = args[3]
-                normalize_pickle(folder, pickle_name)
+                normalize_pm_pickle(folder, pickle_name)
         else:
             print("Unknown command")
 
